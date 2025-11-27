@@ -1,5 +1,6 @@
 import '../database/app_database.dart';
 import '../models/service_model.dart';
+import '../models/service_log_model.dart'; // Importe o novo modelo
 
 class ServiceRepository {
   final AppDatabase _db = AppDatabase.instance;
@@ -22,5 +23,14 @@ class ServiceRepository {
 
   Future<void> deleteService(int id) async {
     await _db.deleteService(id);
+  }
+
+  // --- Novos Métodos ---
+  Future<void> addLog(ServiceLogModel log) async {
+    await _db.insertLog(log);
+  }
+
+  Future<List<ServiceLogModel>> getLogs(int serviceId) async {
+    return await _db.getLogsByServiceId(serviceId);
   }
 }
