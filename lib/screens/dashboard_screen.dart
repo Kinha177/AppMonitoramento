@@ -32,9 +32,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // --- CORREÇÃO AQUI ---
   Future<void> _refreshServices() async {
-    await _loadServices();
+    // Agora chamamos o método que verifica a internet, não apenas o banco
+    final serviceProvider = Provider.of<ServiceProvider>(context, listen: false);
+    await serviceProvider.checkAllStatuses();
   }
+  // ---------------------
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +58,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: Consumer<ServiceProvider>(
         builder: (context, serviceProvider, child) {
-          if (serviceProvider.isLoading) {
+          // Mostra loading apenas se estiver carregando E não tiver serviços na tela
+          // Se tiver serviços, o RefreshIndicator cuida da animação de loading
+          if (serviceProvider.isLoading && serviceProvider.services.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 

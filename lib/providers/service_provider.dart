@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/service_model.dart';
-import '../models/service_log_model.dart';
+// ATENÇÃO: Certifique-se de ter criado o arquivo service_log_model.dart ou remova esta linha e a lógica de logs se não estiver usando.
+import '../models/service_log_model.dart'; 
 import '../services/service_repository.dart';
 import '../services/status_checker.dart';
 
@@ -42,29 +43,25 @@ class ServiceProvider with ChangeNotifier {
     return await _repository.getServiceById(id);
   }
 
-  // Verifica um serviço individual (usado na tela de detalhes)
   Future<void> checkServiceStatus(ServiceModel service) async {
     await _checkAndSave(service);
     await loadServices(service.userId);
   }
 
-  // --- NOVO: Verifica TODOS os serviços (usado no Dashboard) ---
+  // --- Método essencial para o Dashboard ---
   Future<void> checkAllStatuses() async {
     if (_services.isEmpty) return;
 
     _isLoading = true;
     notifyListeners();
 
-    // Cria uma lista de tarefas para rodar todas as verificações ao mesmo tempo (mais rápido)
     List<Future> tasks = [];
     for (var service in _services) {
       tasks.add(_checkAndSave(service));
     }
 
-    // Aguarda todos os sites serem verificados
     await Future.wait(tasks);
 
-    // Recarrega a lista final do banco para mostrar os novos status
     if (_services.isNotEmpty) {
       await loadServices(_services.first.userId);
     } else {
@@ -73,7 +70,6 @@ class ServiceProvider with ChangeNotifier {
     }
   }
 
-  // Função auxiliar para verificar e salvar sem recarregar a tela a cada um
   Future<void> _checkAndSave(ServiceModel service) async {
     try {
       final result = await _statusChecker.checkStatus(service.address);
@@ -85,6 +81,8 @@ class ServiceProvider with ChangeNotifier {
       
       await _repository.updateService(updatedService);
 
+      // Se você não tiver a tabela de logs configurada no banco,
+      // comente o bloco abaixo para evitar erros
       if (service.id != null) {
         final log = ServiceLogModel(
           serviceId: service.id!,
@@ -95,7 +93,6 @@ class ServiceProvider with ChangeNotifier {
         await _repository.addLog(log);
       }
     } catch (e) {
-      // Se der erro em um, não para os outros
       print("Erro ao verificar ${service.name}: $e");
     }
   }
